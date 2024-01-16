@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insert</title>
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Latest compiled JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Đặt màu nền xanh trong phần "Login" */
+        body {
+            background-image: url('https://images.pexels.com/photos/8066712/pexels-photo-8066712.png?auto=compress&cs=tinysrgb&w=600');
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+
+        .container {
+            background-color: powderblue;
+            padding: 10px;
+            max-width: 400px;
+            margin: 0 auto;
+            margin-top: 50px;
+        }
+
+        /* Làm chữ "Email" và "Password" đậm hơn */
+        .form-label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container p-5 my-5 border">
+        <h3 class="pagination justify-content-center">Thêm sản phẩm</h3>
+        <form id="insertForm" class="was-validated" enctype="multipart/form-data">
+            <div class="mb-3 mt-3">
+                <label for="name" class="form-label">Tên sản phẩm:</label>
+                <input type="text" class="form-control" id="name" placeholder="Tên" name="name" required>
+                <div class="valid-feedback">Valid.</div>
+                <div class="invalid-feedback">Please fill out this field.</div>
+            </div>
+            <div class="mb-3">
+                <label for="price" class="form-label">Giá sản phẩm:</label>
+                <input type="number" class="form-control" id="price" placeholder="Giá" name="price" required>
+                <div class="valid-feedback">Valid.</div>
+                <div class="invalid-feedback">Please fill out this field.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="brand" class="form-label">Hãng sản phẩm:</label>
+                <select class="form-select" id="brand" name="brand" required>
+                    <option value="" disabled selected>Chọn hãng sản phẩm</option>
+                    <option value="Dell">Dell</option>
+                    <option value="Asus">Asus</option>
+                    <option value="Mac">Mac</option>
+                </select>
+
+                <div class="valid-feedback">Valid.</div>
+                <div class="invalid-feedback">Please fill out this field.</div>
+            </div>
+            <div class="mb-3">
+                <label for="image" class="form-label">Link ảnh:</label>
+                <input type="file" accept="image/*" class="form-control" id="image" name="image" required multiple
+                    onchange="validateFile()">
+                <div id="file-error" style="color: red;"></div>
+                <div class="valid-feedback">Valid.</div>
+                <div class="invalid-feedback">Please fill out this field.</div>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="myCheck" name="remember" required>
+                <label class="form-check-label" for="myCheck">I agree on blabla.</label>
+                <div class="valid-feedback">Valid.</div>
+                <div class="invalid-feedback">Check this checkbox to continue.</div>
+            </div>
+            <button style="display: block; margin: 0 auto;width: 100px;background-color: orange;" type="button"
+                class="btn btn-primary" onclick="submitForm()">Thêm</button>
+        </form>
+
+        <script>
+            function validateFile() {
+                const fileInput = document.getElementById('image');
+                const file = fileInput.files[0];
+
+                const fileError = document.getElementById('file-error');
+                const validFeedback = document.querySelector('.valid-feedback');
+                const invalidFeedback = document.querySelector('.invalid-feedback');
+
+                const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+                if (!file || !file.type.startsWith('image/') || file.size > maxSizeInBytes) {
+                    if (!file) {
+                        fileError.textContent = 'Please select a file.';
+                    } else if (!file.type.startsWith('image/')) {
+                        fileError.textContent = 'Please select a valid image file.';
+                    } else if (file.size > maxSizeInBytes) {
+                        fileError.textContent = 'File size exceeds 2MB limit.';
+                        fileError.style.color = 'red';  // Đặt màu chữ là đỏ
+                    }
+
+                    validFeedback.style.display = 'none';
+                    invalidFeedback.style.display = 'block';
+                    fileInput.setCustomValidity('Invalid');
+                } else {
+                    fileError.textContent = '';
+                    validFeedback.style.display = 'block';
+                    invalidFeedback.style.display = 'none';
+                    fileInput.setCustomValidity('');
+                }
+            }
+
+
+
+            function submitForm() {
+                const name = document.getElementById('name').value;
+                const price = document.getElementById('price').value;
+                const brand = document.getElementById('brand').value;
+                //const comment = document.getElementById('comment').value;
+                const imageInput = document.getElementById('image');
+                const images = imageInput.files; // Lấy danh sách file từ input
+
+                if (images.length < 1 || images.length > 2) {
+                    alert('Vui lòng chọn từ 1 đến 2 ảnh.');
+                    return;
+                }
+
+                const formData = new FormData(); // Tạo đối tượng FormData để gửi dữ liệu form
+
+                formData.append('name', name);
+                formData.append('price', price);
+                formData.append('brand', brand);
+                //formData.append('comment', comment);
+                console.log('FormData:', formData);
+
+                for (const image of images) {
+                    formData.append('image', image);
+                }
+
+                fetch("/product", {
+                    method: "POST",
+                    body: formData,
+                })
+                    .then(async (response) => {
+                        if (response.ok) {
+                            // Đợi dữ liệu được thêm thành công vào MongoDB
+                            await response.json();
+
+                            // Thêm thành công, hiển thị thông báo
+                            alert("Thêm sản phẩm thành công");
+
+                            // Chuyển hướng đến trang list
+                            window.location.href = "/list";
+                        } else {
+                            // Xử lý thông báo hoặc hiển thị lỗi
+                            console.log('Thêm sản phẩm không thành công');
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+            }
+
+        </script>
+
+    </div>
+</body>
+
+</html>
